@@ -125,17 +125,21 @@
     // for Relative Frequency, need to divide by CF.size()
     mysample.forEach( function(bucket) { bucket.value = bucket.value / faithfulLength })
 
-    var mychart = histChart();
-    var mychart2 = histChart();
-    d3.select( "#container" )
-            .datum( mysample )
-            .call( mychart );
     faithfulGroupBy20 = faithfulByValue.group( function(d) { return Math.floor(d/20)*20});
     mysamplehigh = faithfulGroupBy20.all();
 
+    var mychart = histChart();
+    var mychart2 = histChart();
+
     d3.select( "#container" )
+            .datum( mysample )
+            .transition()
+            .call( mychart );
+
+    d3.select( "#container")
             .datum( mysamplehigh )
-            .call( mychart2 );
+            .transition(5000)
+            .call( mychart );
 
     function histChart() {
         var margin = {top: 20, right: 20, bottom: 20, left: 40},
@@ -184,15 +188,23 @@
                 var gEnter = svg.enter().append("svg").append("g")
                         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-                gEnter.selectAll(".bar")
-                        .data(data)
-                        .enter().append("rect")
+                var bars = gEnter.selectAll(".bar")
+                        .data(data);
+
+                bars.enter().append("rect")
                         .attr("class", "bar")
                         .style( "opacity", 0.5 )
                         .attr("x", function(d) { return xScale(d.key) + 1; })
                         .attr("y", function(d) { return yScale(d.value); })
                         .attr("width", barWidth )
                         .attr("height", function(d) { return chartHeight - yScale(d.value); });
+
+                bars.transition().duration()
+                        .attr("x", function(d) { return xScale(d.key) + 1; })
+                        .attr("y", function(d) { return yScale(d.value); })
+                        .attr("width", barWidth )
+                        .attr("height", function(d) { return chartHeight - yScale(d.value); });
+                bars.exit().transition().style({opacity: 0}).remove();
 
                 gEnter.append("g")
                         .attr("class", "x axis")
