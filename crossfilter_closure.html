@@ -136,10 +136,13 @@
             .transition()
             .call( mychart );
 
+    setInterval(
     d3.select( "#container")
             .datum( mysamplehigh )
-            .transition(5000)
-            .call( mychart );
+            .transition()
+            .duration( 2000 )
+            .call( mychart )
+            , 5000 );
 
     function histChart() {
         var margin = {top: 20, right: 20, bottom: 20, left: 40},
@@ -149,7 +152,10 @@
                 yScale = d3.scale.linear(),
                 xAxis = d3.svg.axis().scale(xScale).orient( "bottom"),
                 barWidth = 110,
-                frequency = false;
+                frequency = false,
+                yAxisLeftRight = "left",
+                color = "steelblue",
+                opacity = 0.6;
 
         function chart( selection ) {
             selection.each( function(data) {
@@ -179,17 +185,17 @@
                 dataLength = data.length;
                 var barWidth = chartWidth / (data.length +2.5);
 
-                // Select the svg element, if it exists
+                // Trick to just append the svg skeleton once
                 var svg = d3.select(this)
-                        .selectAll( "svg")
+                        .selectAll("svg")
                         .data([data]);
+                svg.enter().append("svg")
+                        .classed("chart", true);
+                svg.transition().attr({width: chartWidth, height: chartHeight});
 
-                // Otherwise, create skeletal chart
-                var gEnter = svg.enter().append("svg").append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                var bars = gEnter.selectAll(".bar")
-                        .data(data);
+                // Enter, Update, Exit on bars
+                var bars = svg.selectAll(".bar")
+                        .data(function(d, i) { return d; /* d === _data */ });
 
                 bars.enter().append("rect")
                         .attr("class", "bar")
@@ -206,7 +212,7 @@
                         .attr("height", function(d) { return chartHeight - yScale(d.value); });
                 bars.exit().transition().style({opacity: 0}).remove();
 
-                gEnter.append("g")
+                svg.append("g")
                         .attr("class", "x axis")
                         .attr("transform", "translate(0," + chartHeight + ")")
                         .call(xAxis)
@@ -217,7 +223,7 @@
                         .style("text-anchor", "end");*/
                         //.text("Time between Eruptions (min.)");
 
-                gEnter.append("g")
+                svg.append("g")
                         .attr("class", "y axis")
                         .call(yAxis);
 
