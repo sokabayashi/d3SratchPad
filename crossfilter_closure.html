@@ -129,9 +129,7 @@
     mysamplehigh = faithfulGroupBy20.all();
     mysamplehigh.forEach( function(bucket) { bucket.value = bucket.value / faithfulLength })
 
-    var mychart = histChart();
-    var mychart2 = histChart();
-
+    var mychart = histChart().opacity( 0.8);
 
     foo = function( mydata ) {
         d3.select( "#container")
@@ -239,8 +237,14 @@
                 bars.transition().duration()
                         .attr("x", function(d) { return xScale(d.key) + 1; })
                         .attr("y", function(d) { return yScale(d.value); })
-                        .attr("width", barWidth )
-                        .attr("height", function(d) { return chartHeight - yScale(d.value); });
+                        .attr( {
+                            width: barWidth,
+                            height: function(d) { return chartHeight - yScale(d.value); }
+                        })
+                        .style( {
+                            opacity: opacity
+                        });
+
                 bars.exit().transition().style({opacity: 0}).remove();
 
 /*                svg.append("g")
