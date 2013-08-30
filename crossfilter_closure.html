@@ -127,6 +127,7 @@
 
     faithfulGroupBy20 = faithfulByValue.group( function(d) { return Math.floor(d/20)*20});
     mysamplehigh = faithfulGroupBy20.all();
+    mysamplehigh.forEach( function(bucket) { bucket.value = bucket.value / faithfulLength })
 
     var mychart = histChart();
     var mychart2 = histChart();
@@ -136,13 +137,13 @@
             .transition()
             .call( mychart );
 
-    setInterval(
+/*    setInterval(
     d3.select( "#container")
             .datum( mysamplehigh )
             .transition()
             .duration( 2000 )
             .call( mychart )
-            , 5000 );
+            , 5000 );*/
 
     function histChart() {
         var margin = {top: 20, right: 20, bottom: 20, left: 40},
@@ -150,27 +151,26 @@
                 height = 500,
                 xScale = d3.scale.linear(),
                 yScale = d3.scale.linear(),
+                xScaleMax = 100,
+                yScaleMax = 0.35,
                 xAxis = d3.svg.axis().scale(xScale).orient( "bottom"),
-                barWidth = 110,
+                barWidth = width / xScaleMax * 5,
                 frequency = false,
                 yAxisLeftRight = "left",
                 color = "steelblue",
-                opacity = 0.6;
+                opacity = 0.2;
 
         function chart( selection ) {
             selection.each( function(data) {
                 var chartWidth = width - margin.left - margin.right,
                         chartHeight = height - margin.top - margin.bottom;
 
-
                 // Update x-scale
                 xScale
-                        .domain([30, 110])
-                        //.domain( d3.extent(data ) )
+                        .domain([0, xScaleMax ])
                         .range( [ 0, chartWidth  ]);
                 yScale
-                      //  .domain( [ 0, d3.max( data ) ])
-                    .domain( [ 0, 0.35 ])
+                        .domain( [ 0, yScaleMax ])
                         .range( [ chartHeight, 0]);
 
                 var xAxis = d3.svg.axis()
@@ -183,7 +183,7 @@
                         .tickFormat(d3.format("%"));
 
                 dataLength = data.length;
-                var barWidth = chartWidth / (data.length +2.5);
+//                var barWidth = chartWidth / (data.length +6);
 
                 // Trick to just append the svg skeleton once
                 var svg = d3.select(this)
@@ -199,13 +199,13 @@
 
                 bars.enter().append("rect")
                         .attr("class", "bar")
-                        .style( "opacity", 0.5 )
+                        .style( "opacity", opacity )
                         .attr("x", function(d) { return xScale(d.key) + 1; })
                         .attr("y", function(d) { return yScale(d.value); })
                         .attr("width", barWidth )
                         .attr("height", function(d) { return chartHeight - yScale(d.value); });
 
-                bars.transition().duration()
+                bars.transition().duration(500)
                         .attr("x", function(d) { return xScale(d.key) + 1; })
                         .attr("y", function(d) { return yScale(d.value); })
                         .attr("width", barWidth )
@@ -246,6 +246,12 @@
         chart.height = function(_) {
             if( !arguments.length) return height;
             height = _;
+            return chart;
+        };
+
+        chart.opacity = function(_) {
+            if( !arguments.length) return opacity;
+            opacity = _;
             return chart;
         };
 
