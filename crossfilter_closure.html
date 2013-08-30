@@ -129,7 +129,7 @@
     mysamplehigh = faithfulGroupBy20.all();
     mysamplehigh.forEach( function(bucket) { bucket.value = bucket.value / faithfulLength })
 
-    var mychart = histChart().opacity( 0.8);
+    var mychart = histChart().opacity( 0.8).frequency(true);
 
     foo = function( mydata ) {
         d3.select( "#container")
@@ -155,9 +155,9 @@
                 yScale = d3.scale.linear(),
                 xScaleMax = 100,
                 yScaleMax = 0.35,
-                yScaleUpdate = true,
+                yScaleUpdate = true,// Possible that we may want to *not* update this.
                 barWidth = width / xScaleMax * 5,
-                frequency = false,
+                frequency = true,
                 yAxisLeftRight = "left",
                 color = "steelblue",
                 opacity = 0.2;
@@ -173,7 +173,6 @@
                         .range( [ 0, chartWidth  ]);
 
                 if( yScaleUpdate ) yScaleMax = d3.max( data, function(d){ return d.value;} );
-
                 yScale
                         .domain( [ 0, yScaleMax ])
                         .range( [ chartHeight, 0]);
@@ -184,7 +183,7 @@
 
                 var yAxis = d3.svg.axis()
                         .scale(yScale)
-                        .orient("left")
+                        .orient(yAxisLeftRight)
                 if( !frequency ) yAxis.tickFormat(d3.format("%"));
 
                 dataLength = data.length;
@@ -206,14 +205,12 @@
                         .attr({transform: "translate(" + margin.left + "," + margin.top + ")"});
 
                 svg.select(".x-axis-group.axis")
-                        //.transition()
                         .attr({transform: "translate(0," + (chartHeight) + ")"})
-                        .call(xAxis)
-
-                        svg.select( ".x-axis-group.axis").append("text")
+                        .call(xAxis);
+                svg.select(".x-axis-group.axis").append("text")
                         .attr("class", "label")
                         .attr("x", chartWidth)
-                        .attr("y", 30 )
+                        .attr("y", 30)
                         .style("text-anchor", "end")
                         .text("Shift length (sec)");
 
@@ -228,36 +225,26 @@
 
                 bars.enter().append("rect")
                         .attr("class", "bar")
-                        .style( "opacity", opacity )
-                        .attr("x", function(d) { return xScale(d.key) + 1; })
-                        .attr("y", function(d) { return yScale(d.value); })
-                        .attr("width", barWidth )
-                        .attr("height", function(d) { return chartHeight - yScale(d.value); });
+                        .attr({
+                            x: function (d) { return xScale(d.key) + 1; },
+                            y: function (d) { return yScale(d.value); },
+                            width: barWidth,
+                            height: function (d) { return chartHeight - yScale(d.value); }
+                        })
+                        .style( "opacity", opacity );
 
                 bars.transition().duration()
-                        .attr("x", function(d) { return xScale(d.key) + 1; })
-                        .attr("y", function(d) { return yScale(d.value); })
-                        .attr( {
+                        .attr({
+                            x: function (d) { return xScale(d.key) + 1; },
+                            y: function (d) { return yScale(d.value); },
                             width: barWidth,
-                            height: function(d) { return chartHeight - yScale(d.value); }
+                            height: function (d) { return chartHeight - yScale(d.value); }
                         })
                         .style( {
                             opacity: opacity
                         });
 
                 bars.exit().transition().style({opacity: 0}).remove();
-
-/*                svg.append("g")
-                        .attr("class", "x axis")
-                        .attr("transform", "translate(0," + chartHeight + ")")
-                        .call(xAxis)
-                        .append("text")
-                        .attr("class", "label")
-                        .attr("x", chartWidth)
-                        .attr("y", -6)
-                        .style("text-anchor", "end")
-                        .text("Shift length (sec)");*/
-
             }) // selection.each
 
         } // chart
@@ -280,9 +267,21 @@
             return chart;
         };
 
+        chart.yScaleUpdate = function(_) {
+            if( !arguments.length) return yScaleUpdate;
+            yScaleUpdate = _;
+            return chart;
+        };
+
         chart.opacity = function(_) {
             if( !arguments.length) return opacity;
             opacity = _;
+            return chart;
+        };
+
+        chart.frequency = function(_) {
+            if( !arguments.length) return frequency;
+            frequency = _;
             return chart;
         };
 
