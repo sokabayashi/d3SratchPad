@@ -125,7 +125,7 @@
     mysamplehigh = faithfulGroupBy20.all();
     mysamplehigh.forEach( function(bucket) { bucket.value = bucket.value / faithfulLength })
 
-    var mychart = histChart().opacity( 0.8).frequency(true);
+    var mychart = histChart().opacity(0.6).frequency(false).xScaleMax(110).barWidth(24.5);
 
     foo = function( mydata ) {
         d3.select( "#container")
@@ -135,9 +135,8 @@
     }
 
     foo(mysample);
-//    setTimeout( function() { foo(mysamplehigh) }
-//            , 1500 );
-
+    setTimeout( function() { foo(mysamplehigh) }
+            , 1500 );
 
     xScale = mychart.xScale();
     yScale = mychart.yScale();
@@ -165,7 +164,7 @@
                 barWidth = width / xScaleMax * 5,
                 frequency = true,
                 yAxisLeftRight = "left",
-                color = "steelblue",
+                fillColor = "steelblue",
                 opacity = 0.2;
 
         function chart( selection ) {
@@ -237,7 +236,10 @@
                             width: barWidth,
                             height: function (d) { return chartHeight - yScale(d.value); }
                         })
-                        .style( "opacity", opacity );
+                        .style( {
+                            opacity:  opacity,
+                            fill: fillColor
+            } );
 
                 bars.transition().duration()
                         .attr({
@@ -247,7 +249,8 @@
                             height: function (d) { return chartHeight - yScale(d.value); }
                         })
                         .style( {
-                            opacity: opacity
+                            opacity: opacity,
+                            fill: fillColor
                         });
 
                 bars.exit().transition().style({opacity: 0}).remove();
@@ -285,15 +288,33 @@
             return chart;
         };
 
+        chart.xScaleMax = function(_) {
+            if( !arguments.length) return xScaleMax;
+            xScaleMax = _;
+            return chart;
+        };
+
         chart.yScaleUpdate = function(_) {
             if( !arguments.length) return yScaleUpdate;
             yScaleUpdate = _;
             return chart;
         };
 
+        chart.barWidth = function(_) {
+            if( !arguments.length) return barWidth;
+            barWidth = _;
+            return chart;
+        };
+
         chart.opacity = function(_) {
             if( !arguments.length) return opacity;
             opacity = _;
+            return chart;
+        };
+
+        chart.fillColor = function(_) {
+            if( !arguments.length) return fillColor;
+            fillColor = _;
             return chart;
         };
 
