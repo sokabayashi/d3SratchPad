@@ -132,28 +132,32 @@
     var mychart = histChart();
     var mychart2 = histChart();
 
-    d3.select( "#container" )
-            .datum( mysample )
-            .transition()
-            .call( mychart );
 
-/*    setInterval(
-    d3.select( "#container")
-            .datum( mysamplehigh )
+    foo = function( mydata ) {
+        d3.select( "#container")
+                .datum( mydata )
             .transition()
-            .duration( 2000 )
-            .call( mychart )
-            , 5000 );*/
+            //.duration( 2000 )
+                .call( mychart )
+    }
+
+    foorun = function() {
+        foo(mysample);
+
+        setTimeout( function() { foo(mysamplehigh) }
+            , 1500 );
+    };
+    foorun();
 
     function histChart() {
-        var margin = {top: 20, right: 20, bottom: 20, left: 40},
-                width = 760,
+        var margin = {top: 20, right: 20, bottom: 50, left: 40},
+                width = 350,
                 height = 500,
                 xScale = d3.scale.linear(),
                 yScale = d3.scale.linear(),
                 xScaleMax = 100,
                 yScaleMax = 0.35,
-                xAxis = d3.svg.axis().scale(xScale).orient( "bottom"),
+                yScaleUpdate = true,
                 barWidth = width / xScaleMax * 5,
                 frequency = false,
                 yAxisLeftRight = "left",
@@ -169,6 +173,9 @@
                 xScale
                         .domain([0, xScaleMax ])
                         .range( [ 0, chartWidth  ]);
+
+                if( yScaleUpdate ) yScaleMax = d3.max( data, function(d){ return d.value;} );
+
                 yScale
                         .domain( [ 0, yScaleMax ])
                         .range( [ chartHeight, 0]);
@@ -180,10 +187,9 @@
                 var yAxis = d3.svg.axis()
                         .scale(yScale)
                         .orient("left")
-                        .tickFormat(d3.format("%"));
+                if( !frequency ) yAxis.tickFormat(d3.format("%"));
 
                 dataLength = data.length;
-//                var barWidth = chartWidth / (data.length +6);
 
                 // Trick to just append the svg skeleton once
                 var svg = d3.select(this)
@@ -191,11 +197,36 @@
                         .data([data]);
                 svg.enter().append("svg")
                         .classed("chart", true);
-                svg.transition().attr({width: chartWidth, height: chartHeight});
+
+                var container = svg.append("g").classed("container-group", true);
+                container.append("g").classed("chart-group", true);
+                container.append("g").classed("x-axis-group axis", true);
+                container.append("g").classed("y-axis-group axis", true);
+
+                svg.transition().attr({width: width, height: height});
+                svg.select(".container-group")
+                        .attr({transform: "translate(" + margin.left + "," + margin.top + ")"});
+
+                svg.select(".x-axis-group.axis")
+                        //.transition()
+                        .attr({transform: "translate(0," + (chartHeight) + ")"})
+                        .call(xAxis)
+
+                        svg.select( ".x-axis-group.axis").append("text")
+                        .attr("class", "label")
+                        .attr("x", chartWidth)
+                        .attr("y", 30 )
+                        .style("text-anchor", "end")
+                        .text("Shift length (sec)");
+
+                svg.select(".y-axis-group.axis")
+                        .transition()
+                        .call(yAxis);
 
                 // Enter, Update, Exit on bars
-                var bars = svg.selectAll(".bar")
-                        .data(function(d, i) { return d; /* d === _data */ });
+                var bars = svg.select(".chart-group")
+                        .selectAll(".bar")
+                        .data(data);
 
                 bars.enter().append("rect")
                         .attr("class", "bar")
@@ -205,27 +236,23 @@
                         .attr("width", barWidth )
                         .attr("height", function(d) { return chartHeight - yScale(d.value); });
 
-                bars.transition().duration(500)
+                bars.transition().duration()
                         .attr("x", function(d) { return xScale(d.key) + 1; })
                         .attr("y", function(d) { return yScale(d.value); })
                         .attr("width", barWidth )
                         .attr("height", function(d) { return chartHeight - yScale(d.value); });
                 bars.exit().transition().style({opacity: 0}).remove();
 
-                svg.append("g")
+/*                svg.append("g")
                         .attr("class", "x axis")
                         .attr("transform", "translate(0," + chartHeight + ")")
                         .call(xAxis)
-                       /* .append("text")
+                        .append("text")
                         .attr("class", "label")
                         .attr("x", chartWidth)
                         .attr("y", -6)
-                        .style("text-anchor", "end");*/
-                        //.text("Time between Eruptions (min.)");
-
-                svg.append("g")
-                        .attr("class", "y axis")
-                        .call(yAxis);
+                        .style("text-anchor", "end")
+                        .text("Shift length (sec)");*/
 
             }) // selection.each
 
