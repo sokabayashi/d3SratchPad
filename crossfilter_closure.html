@@ -125,7 +125,9 @@
     mysamplehigh = faithfulGroupBy20.all();
     mysamplehigh.forEach( function(bucket) { bucket.value = bucket.value / faithfulLength })
 
-    var mychart = histChart().opacity(0.6).frequency(false).xScaleMax(110).barWidth(24.5);
+    var mychart = histChart().frequency(false).xScaleMax(110)
+            .yAxisOrient("right").yScaleUpdate(true)
+            .barWidth(24.5).opacity(0.6);
 
     foo = function( mydata ) {
         d3.select( "#container")
@@ -153,7 +155,7 @@
             .attr("d", line);
 
     function histChart() {
-        var margin = {top: 20, right: 20, bottom: 50, left: 40},
+        var margin = {top: 20, right: 30, bottom: 50, left: 30},
                 width = 350,
                 height = 500,
                 xScale = d3.scale.linear(),
@@ -161,9 +163,9 @@
                 xScaleMax = 100,
                 yScaleMax = 0.35,
                 yScaleUpdate = true,// Possible that we may *not* want to update this.
+                yAxisOrient = "left",
                 barWidth = width / xScaleMax * 5,
                 frequency = true,
-                yAxisLeftRight = "left",
                 fillColor = "steelblue",
                 opacity = 0.2;
 
@@ -188,7 +190,7 @@
 
                 var yAxis = d3.svg.axis()
                         .scale(yScale)
-                        .orient(yAxisLeftRight)
+                        .orient(yAxisOrient)
                 if( !frequency ) yAxis.tickFormat(d3.format("%"));
 
                 dataLength = data.length;
@@ -222,6 +224,9 @@
                 svg.select(".y-axis-group.axis")
                         .transition()
                         .call(yAxis);
+                if( yAxisOrient==="right" )
+                svg.select( ".y-axis-group.axis")
+                        .attr({transform: "translate(" + (chartWidth) + ",0)"})
 
                 // Enter, Update, Exit on bars
                 var bars = svg.select(".chart-group")
@@ -297,6 +302,12 @@
         chart.yScaleUpdate = function(_) {
             if( !arguments.length) return yScaleUpdate;
             yScaleUpdate = _;
+            return chart;
+        };
+
+        chart.yAxisOrient = function(_) {
+            if( !arguments.length) return yAxisOrient;
+            yAxisOrient = _;
             return chart;
         };
 
