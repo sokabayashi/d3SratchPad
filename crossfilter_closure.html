@@ -38,7 +38,7 @@
         }
 
         .y.axis path {
-            display: none;
+            /*display: none;*/
         }
     </style>
 </head>
@@ -55,7 +55,7 @@
             height = 500 - margin.top - margin.bottom;
 
     var x = d3.scale.linear()
-            .domain([30, 110])
+            .domain([0, 100])
             .range([0, width]);
 
     var y = d3.scale.linear()
@@ -70,10 +70,6 @@
             .scale(y)
             .orient("left")
             .tickFormat(d3.format("%"));
-
-    var line = d3.svg.line()
-            .x(function(d) { return x(d[0]); })
-            .y(function(d) { return y(d[1]); });
 
     var histogram = d3.layout.histogram()
             .frequency(false)
@@ -134,18 +130,28 @@
     foo = function( mydata ) {
         d3.select( "#container")
                 .datum( mydata )
-            .transition()
-            //.duration( 2000 )
+            .transition() //.duration( 2000 )
                 .call( mychart )
     }
 
-    foorun = function() {
-        foo(mysample);
+    foo(mysample);
+//    setTimeout( function() { foo(mysamplehigh) }
+//            , 1500 );
 
-        setTimeout( function() { foo(mysamplehigh) }
-            , 1500 );
-    };
-    foorun();
+
+    xScale = mychart.xScale();
+    yScale = mychart.yScale();
+
+    var line = d3.svg.line()
+            .x(function(d) { return xScale(d[0]); })
+            .y(function(d) { return yScale(d[1]); });
+
+    kde = kernelDensityEstimator(epanechnikovKernel(7), xScale.ticks(100));
+    myline = kde( faithful )
+    d3.select( "#container" ).append("path")
+            .datum(kde(faithful))
+            .attr("class", "line")
+            .attr("d", line);
 
     function histChart() {
         var margin = {top: 20, right: 20, bottom: 50, left: 40},
@@ -155,7 +161,7 @@
                 yScale = d3.scale.linear(),
                 xScaleMax = 100,
                 yScaleMax = 0.35,
-                yScaleUpdate = true,// Possible that we may want to *not* update this.
+                yScaleUpdate = true,// Possible that we may *not* want to update this.
                 barWidth = width / xScaleMax * 5,
                 frequency = true,
                 yAxisLeftRight = "left",
@@ -167,7 +173,7 @@
                 var chartWidth = width - margin.left - margin.right,
                         chartHeight = height - margin.top - margin.bottom;
 
-                // Update x-scale
+                // Update scales
                 xScale
                         .domain([0, xScaleMax ])
                         .range( [ 0, chartWidth  ]);
@@ -264,6 +270,18 @@
         chart.height = function(_) {
             if( !arguments.length) return height;
             height = _;
+            return chart;
+        };
+
+        chart.xScale = function(_) {
+            if( !arguments.length) return xScale;
+            xScale = _;
+            return chart;
+        };
+
+        chart.yScale = function(_) {
+            if( !arguments.length) return yScale;
+            yScale = _;
             return chart;
         };
 
